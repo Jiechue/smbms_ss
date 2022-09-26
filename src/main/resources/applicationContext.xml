@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+  <!--spring容器的职责：
+    1. 包扫描： 不扫控制器
+    2. 连接池和工具类
+    3. aop(事务)
+  -->
+
+    <!--1.包扫描-->
+   <context:component-scan base-package="com" >
+       <!--排除控制器-->
+       <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+   </context:component-scan>
+
+    <!--2. 加载配置文件 -->
+    <context:property-placeholder location="classpath:db.properties"></context:property-placeholder>
+   <!--3,配置连接池-->
+    <bean class="com.alibaba.druid.pool.DruidDataSource" id="dataSource">
+        <property name="url" value="${db.url}"></property>
+        <property name="driverClassName" value="${db.driver}"></property>
+        <property name="username" value="${db.user}"></property>
+        <property name="password" value="${db.pwd}"></property>
+
+    </bean>
+    <!--配置代理数据源,支持事务-->
+     <bean class="org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy" id="dataSourceProxy">
+         <property name="targetDataSource" ref="dataSource"></property>
+     </bean>
+
+    <!--配置QueryRunner工具类-->
+    <bean class="org.apache.commons.dbutils.QueryRunner" id="queryRunner">
+        <!--注入代理数据源-->
+        <constructor-arg ref="dataSourceProxy"></constructor-arg>
+    </bean>
+
+    <!--配置事务管理器-->
+   <bean class="org.springframework.jdbc.datasource.DataSourceTransactionManager" id="transactionManager">
+       <!--注入代理数据源-->
+       <property name="dataSource" ref="dataSourceProxy"></property>
+   </bean>
+    <!--开启事务的注解-->
+    <tx:annotation-driven transaction-manager="transactionManager"></tx:annotation-driven>
+
+
+</beans>

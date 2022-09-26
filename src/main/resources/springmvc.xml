@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
+http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+   <!--springmvc的容器:
+     1. 扫描控制器
+     2. 配置三大组件
+     3. 配置数据类型转换
+     4. 配置异常处理
+     5. 配置拦截器
+   -->
+    <context:component-scan base-package="com.smbms.controller"></context:component-scan>
+     <mvc:annotation-driven conversion-service="conversionService"></mvc:annotation-driven>
+       <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value="/"></property>
+        <property name="suffix" value=".jsp"></property>
+
+    </bean>
+    <!--配置格式转换服务-->
+    <bean class="org.springframework.format.support.FormattingConversionServiceFactoryBean" id="conversionService">
+        <property name="converters">
+            <set>
+                <bean class="com.smbms.util.DateConverter"></bean>
+            </set>
+        </property>
+    </bean>
+
+    <!--springmvc内置的异常处理-->
+  <!--  <bean class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+        <property name="exceptionMappings">
+            <props>
+                &lt;!&ndash;如果出现异常，跳转到指定的页面名称&ndash;&gt;
+                <prop key="java.lang.Exception">error</prop>
+            </props>
+        </property>
+    </bean>-->
+
+    <!--静态资源放行-->
+    <mvc:default-servlet-handler/>
+
+
+    <!--配置拦截器-->
+    <mvc:interceptors>
+        <mvc:interceptor>
+            <mvc:mapping path="/**"/>
+            <!--配置放行路径:静态资源放行-->
+          <mvc:exclude-mapping path="/css/**"/>
+            <mvc:exclude-mapping path="/js/**"/>
+            <mvc:exclude-mapping path="/img/**"/>
+            <!--登录功能放行-->
+            <mvc:exclude-mapping path="/user/login"/>
+            <bean class="com.smbms.interceptor.LoginCheckInterceptor"></bean>
+        </mvc:interceptor>
+    </mvc:interceptors>
+
+</beans>
